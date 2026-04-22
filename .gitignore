@@ -1,0 +1,104 @@
+# ===========================================
+# ROOT .gitignore - Proyecto Fullstack
+# ===========================================
+
+# === Node.js / npm (común para backend, frontend, serverless) ===
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+*.tgz
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# === Logs y diagnósticos ===
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Dependencias y builds ===
+# Backend builds (si aplica)
+backend/dist/
+backend/build/
+
+# Frontend (Vite/React)
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/*.log
+
+# Serverless artifacts
+serverless/**/temp_s3/
+serverless/**/*.zip
+!serverless/**/package.json
+
+# === Terraform ===
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+*.terraform.lock.hcl
+crash.log
+*.override.tf
+*.tfvars
+!*.tfvars.example
+
+# === Docker ===
+*.log
+docker-compose.override.yml
+
+# === IDE y editores ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# === Sistema operativo ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.Spotlight-V100/
+.Trashes/
+
+# === Git ===
+*.orig
+merge-recursive
+
+# === Certificados y claves (seguridad) ===
+*.pem
+*.key
+*.p12
+*.crt
+secrets/
+
+# === Imágenes temporales / capturas ===
+**/temp_*/
+**/screenshots/
+**/*.tmp
+**/Thumbs.db
+
+# ===========================================
+# NOTAS IMPORTANTES
+# ===========================================
+# 1. El archivo .env NO debe subirse nunca. Usa .env.example como plantilla.
+# 2. Los archivos .tfstate contienen datos sensibles; considera usar backend remoto.
+# 3. Si usas GitHub Actions, añade también: .github/workflows/*.log
+
+# ===========================================
+# RECOMENDACIÓN: .gitignore por subproyecto
+# ===========================================
+# Para mayor control, puedes añadir .gitignore específicos en cada carpeta:
+
+# backend/.gitignore
+# frontend/.gitignore  
+# serverless/image-upload/.gitignore
+# terraform/.gitignore

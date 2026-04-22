@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: semisocial_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: semisocial
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistencia de datos (para no perder la info si bajas el contenedor)
+      - postgres_data:/var/lib/postgresql/data
+      # Aquí ocurre la magia: mapeamos tu init.sql a la carpeta de inicialización de Postgres
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:

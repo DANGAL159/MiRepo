@@ -1,0 +1,80 @@
+/* frontend/src/index.css */
+:root {
+  --bg-base: #0b1120; /* Azul muy oscuro/grisáceo */
+  --bg-panel: #1e293b; /* Gris pizarra */
+  --neon-blue: #38bdf8; /* Azul eléctrico */
+  --neon-glow: rgba(56, 189, 248, 0.4);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Estilización global para paneles (formularios, posts) */
+form, .panel, nav {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Inputs con estilo terminal/hacker */
+input, textarea {
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-family: monospace; /* Toque técnico */
+  transition: all 0.3s ease;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 8px var(--neon-glow);
+}
+
+/* Botones Neón */
+button {
+  background-color: transparent;
+  color: var(--neon-blue);
+  border: 1px solid var(--neon-blue);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: var(--neon-blue);
+  color: var(--bg-base);
+  box-shadow: 0 0 15px var(--neon-glow);
+}
+
+button:disabled {
+  border-color: var(--text-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Enlaces */
+a {
+  color: var(--neon-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-shadow: 0 0 8px var(--neon-glow);
+}
