@@ -8,8 +8,8 @@ resource "aws_iam_role" "ec2_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
       Principal = { Service = "ec2.amazonaws.com" }
     }]
   })
@@ -90,11 +90,11 @@ data "aws_ami" "ubuntu" {
 
 # Máquina 1
 resource "aws_instance" "backend_node_1" {
-  ami                  = data.aws_ami.ubuntu.id
-  instance_type        = "t3.micro"
-  subnet_id            = aws_subnet.public_subnet_1.id
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  subnet_id              = aws_subnet.public_subnet_1.id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   user_data = <<-EOF
               #!/bin/bash
@@ -109,11 +109,11 @@ resource "aws_instance" "backend_node_1" {
 
 # Máquina 2 (Clon exacto)
 resource "aws_instance" "backend_node_2" {
-  ami                  = data.aws_ami.ubuntu.id
-  instance_type        = "t3.micro"
-  subnet_id            = aws_subnet.public_subnet_2.id
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  subnet_id              = aws_subnet.public_subnet_2.id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   user_data = <<-EOF
               #!/bin/bash

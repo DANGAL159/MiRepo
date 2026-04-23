@@ -38,8 +38,8 @@ export default function Feed({ user, setUser }) {
 
     const handleTraducir = async (texto, idPublicacion) => {
         try {
-            const { data } = await api.post('/translate', { texto, idioma: 'es' });
-            alert(`Traducción: ${data.translation}`);
+            const { data } = await api.post('/translate', { texto });
+            alert(`EN: ${data.traducciones.en}\nFR: ${data.traducciones.fr}\nPT: ${data.traducciones.pt}`);
         } catch (error) {
             alert('Error al traducir');
         }

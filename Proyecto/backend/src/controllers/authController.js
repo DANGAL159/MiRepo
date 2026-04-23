@@ -1,45 +1,51 @@
-// backend/src/controllers/authController.js
+const { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand } = require("@aws-sdk/client-cognito-identity-provider");
 const db = require('../config/db');
-const md5 = require('md5');
 
-// Agrega esta importación arriba en authController.js
-const { RekognitionClient, CompareFacesCommand } = require("@aws-sdk/client-rekognition");
-const rekognition = new RekognitionClient({ region: "us-east-1" });
+const cognito = new CognitoIdentityProviderClient({ region: "us-east-1" });
 
 const registerUser = async (req, res) => {
+    const { correo, contrasena, nombre_completo, dpi, foto_perfil_url } = req.body;
     try {
-        const { nombre_completo, correo, dpi, contrasena, foto_perfil_url, cognito_sub } = req.body;
-
-        // Validación básica
-        if (!nombre_completo || !correo || !dpi || !contrasena) {
-            return res.status(400).json({ error: 'Faltan campos obligatorios' });
-        }
-
-        // Encriptar la contraseña con MD5 (Requisito de la rúbrica 1.5)
-        const contrasenaEncriptada = md5(contrasena);
-
-        // Insertar en PostgreSQL
-        const query = `
-            INSERT INTO usuarios (cognito_sub, nombre_completo, correo, dpi, contrasena, foto_perfil_url)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, nombre_completo, correo;
-        `;
-        const values = [cognito_sub, nombre_completo, correo, dpi, contrasenaEncriptada, foto_perfil_url];
-
-        const result = await db.query(query, values);
-
-        res.status(201).json({
-            message: 'Usuario registrado exitosamente en la base de datos',
-            user: result.rows[0]
+        // 1. Registrar en Amazon Cognito
+        const signUpCommand = new SignUpCommand({
+            ClientId: process.env.COGNITO_CLIENT_ID,
+            Username: correo,
+            Password: contrasena,
+            UserAttributes: [{ Name: "email", Value: correo }]
         });
+        await cognito.send(signUpCommand);
 
+        // 2. Guardar metadata en PostgreSQL
+        const query = 'INSERT INTO usuarios (correo, contrasena, nombre_completo, dpi, foto_perfil_url) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+        const { rows } = await db.query(query, [correo, contrasena, nombre_completo, dpi, foto_perfil_url]);
+        
+        res.status(201).json({ message: 'Usuario registrado exitosamente', user: rows[0] });
     } catch (error) {
-        console.error('Error al registrar usuario:', error);
-        // Manejo de errores de llave duplicada (correo o dpi)
-        if (error.code === '23505') {
-            return res.status(409).json({ error: 'El correo o DPI ya están registrados' });
-        }
-        res.status(500).json({ error: 'Error interno del servidor' });
+        console.error("Error en Cognito/DB:", error);
+        res.status(400).json({ error: error.message || 'Error al registrar usuario' });
+    }
+};
+
+const loginUser = async (req, res) => {
+    const { correo, contrasena } = req.body;
+    try {
+        // 1. Autenticar con Amazon Cognito
+        const authCommand = new AdminInitiateAuthCommand({
+            AuthFlow: "ADMIN_NO_SRP_AUTH",
+            ClientId: process.env.COGNITO_CLIENT_ID,
+            UserPoolId: process.env.COGNITO_POOL_ID,
+            AuthParameters: { USERNAME: correo, PASSWORD: contrasena }
+        });
+        const cognitoRes = await cognito.send(authCommand);
+
+        // 2. Traer datos de PostgreSQL para armar el perfil visual
+        const { rows } = await db.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+        if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado en BD' });
+
+        res.status(200).json({ message: 'Login exitoso', token: cognitoRes.AuthenticationResult.IdToken, user: rows[0] });
+    } catch (error) {
+        console.error("Login Error:", error);
+        res.status(401).json({ error: 'Credenciales incorrectas o error en Cognito' });
     }
 };
 
@@ -59,7 +65,7 @@ const loginFacial = async (req, res) => {
         // 2. Extraer el nombre del archivo de la URL de S3
         // Ejemplo URL: https://bucket.s3.amazonaws.com/Fotos_Perfil/foto.jpg
         const s3Key = user.foto_perfil_url.split('.com/')[1]; 
-        const bucketName = process.env.S3_BUCKET_NAME || 'semi1proyecto-g#';
+        const bucketName = process.env.S3_BUCKET_NAME || 'semi1proyecto-g9-202203361';
 
         // 3. Preparar la imagen de la cámara
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -87,4 +93,4 @@ const loginFacial = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginFacial }; // Asegúrate de exportarlo
+module.exports = { registerUser, loginUser, loginFacial }; 
