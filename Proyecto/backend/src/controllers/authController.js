@@ -68,8 +68,10 @@ const registerUser = async (req, res) => {
 // 2. LOGIN TRADICIONAL (FLUJO PÚBLICO SEGURO)
 // ==========================================
 const loginUser = async (req, res) => {
+    console.log("Intentando login para:", req.body.correo);
     const { correo, contrasena } = req.body;
     try {
+        console.log("Preparando comando de autenticación para Cognito...");
         // Usamos InitiateAuthCommand (Sin el Admin)
         const authCommand = new InitiateAuthCommand({
             AuthFlow: "USER_PASSWORD_AUTH", 
@@ -79,12 +81,15 @@ const loginUser = async (req, res) => {
                 PASSWORD: contrasena 
             }
         });
+        console.log("Comando preparado, enviando a Cognito...");
         const cognitoAuth = await cognito.send(authCommand);
 
+        console.log("Cognito respondió con éxito. Buscando usuario en BD...");
         // Buscamos al usuario en la BD 
         const { rows } = await db.query('SELECT id, correo, nombre_completo, foto_perfil_url, cognito_sub FROM usuarios WHERE correo = $1', [correo]);
         if (rows.length === 0) return res.status(404).json({ error: 'Usuario en AWS pero no en DB' });
 
+        console.log("Usuario encontrado en BD. Emitiendo token JWT...");
         res.status(200).json({ 
             message: 'Login exitoso', 
             token: cognitoAuth.AuthenticationResult.IdToken, 
