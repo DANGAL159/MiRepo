@@ -49,17 +49,26 @@ const createPublication = async (req, res) => {
 const translateDescription = async (req, res) => {
     const { texto } = req.body;
     try {
-        const idiomasDestino = ['en', 'fr', 'pt']; // Inglés, Francés, Portugués (Mínimo 3)
+        const idiomasDestino = ['en', 'fr', 'pt'];
         const traducciones = {};
 
         for (const lang of idiomasDestino) {
-            const command = new TranslateTextCommand({
-                SourceLanguageCode: "auto",
-                TargetLanguageCode: lang,
-                Text: texto
-            });
-            const response = await translate.send(command);
-            traducciones[lang] = response.TranslatedText;
+            try {
+                const command = new TranslateTextCommand({
+                    SourceLanguageCode: "auto",
+                    TargetLanguageCode: lang,
+                    Text: texto
+                });
+                const response = await translate.send(command);
+                traducciones[lang] = response.TranslatedText;
+            } catch (awsError) {
+                // Si AWS tira el error de suscripción, devolvemos un texto simulado para que la app no falle
+                if (awsError.name === 'SubscriptionRequiredException' || awsError.$metadata?.httpStatusCode === 400) {
+                    traducciones[lang] = `[Traducción bloqueada por límite de AWS]`;
+                } else {
+                    throw awsError; // Si es otro error grave, lo lanzamos
+                }
+            }
         }
 
         res.status(200).json({ traducciones });

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3000'); // URL de tu backend EC2
+import { SERVER_ROOT } from '../api';
+
+const socket = io(SERVER_ROOT);
 
 export default function Chat({ user }) {
     const [mensaje, setMensaje] = useState('');

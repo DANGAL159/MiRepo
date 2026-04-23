@@ -1,8 +1,11 @@
 import axios from 'axios';
 
-// En local, apuntamos a los puertos donde corren nuestros servicios
-const BACKEND_URL = 'http://semisocial-alb-2051108905.us-east-1.elb.amazonaws.com/api'; // Cambia esto si tu backend corre en otro puerto o URL
-const LAMBDA_URL = 'https://qsvf7wsii9.execute-api.us-east-1.amazonaws.com/upload'; // Este lo emularemos en el paso 3
+// 1. Exportas la raíz para que Socket.io la use
+export const SERVER_ROOT = 'http://semisocial-alb-2051108905.us-east-1.elb.amazonaws.com';
+
+// 2. Le agregas el /api para Axios
+const BACKEND_URL = `${SERVER_ROOT}/api`;
+export const LAMBDA_URL = 'https://qsvf7wsii9.execute-api.us-east-1.amazonaws.com/upload'; 
 
 export const api = axios.create({
     baseURL: BACKEND_URL,
