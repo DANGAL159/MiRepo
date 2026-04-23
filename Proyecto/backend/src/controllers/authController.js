@@ -1,4 +1,9 @@
-const { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand, AdminConfirmSignUpCommand } = require("@aws-sdk/client-cognito-identity-provider");
+//const { CognitoIdentityProviderClient, SignUpCommand, 
+//    AdminInitiateAuthCommand, AdminConfirmSignUpCommand } = require("@aws-sdk/client-cognito-identity-provider");
+
+// Asegúrate de tener InitiateAuthCommand en tu importación inicial
+const { CognitoIdentityProviderClient, SignUpCommand, InitiateAuthCommand, AdminConfirmSignUpCommand } = require("@aws-sdk/client-cognito-identity-provider");
+
 const { RekognitionClient, CompareFacesCommand } = require("@aws-sdk/client-rekognition");
 const jwt = require("jsonwebtoken"); 
 const db = require('../config/db');
@@ -46,21 +51,23 @@ const registerUser = async (req, res) => {
 };
 
 // ==========================================
-// 2. LOGIN TRADICIONAL
+// 2. LOGIN TRADICIONAL (CORREGIDO)
 // ==========================================
 const loginUser = async (req, res) => {
     const { correo, contrasena } = req.body;
     try {
-        // 1. AWS valida que la contraseña sea correcta
-        const authCommand = new AdminInitiateAuthCommand({
-            AuthFlow: "ADMIN_NO_SRP_AUTH",
+        // 1. AWS valida que la contraseña sea correcta (Flujo Público)
+        const authCommand = new InitiateAuthCommand({
+            AuthFlow: "USER_PASSWORD_AUTH",
             ClientId: process.env.COGNITO_CLIENT_ID,
-            UserPoolId: process.env.COGNITO_POOL_ID,
-            AuthParameters: { USERNAME: correo, PASSWORD: contrasena }
+            AuthParameters: { 
+                USERNAME: correo, 
+                PASSWORD: contrasena 
+            }
         });
         const cognitoAuth = await cognito.send(authCommand);
 
-        // 2. Buscamos al usuario en la BD (ahora validando que exista)
+        // 2. Buscamos al usuario en la BD 
         const { rows } = await db.query('SELECT id, correo, nombre_completo, foto_perfil_url, cognito_sub FROM usuarios WHERE correo = $1', [correo]);
         if (rows.length === 0) return res.status(404).json({ error: 'Usuario en AWS pero no en DB' });
 
@@ -70,9 +77,9 @@ const loginUser = async (req, res) => {
             user: rows[0] 
         });
     } catch (error) {
-        console.error("Login Error Cognito:", error);
+        // Imprime el error exacto en la terminal por si falla
         console.error("Login Error Cognito DETALLE:", error.name, error.message);
-        res.status(401).json({ error: 'Credenciales inválidas' });
+        res.status(401).json({ error: 'Credenciales inválidas o error de AWS' });
     }
 };
 
