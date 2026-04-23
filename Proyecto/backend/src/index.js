@@ -17,10 +17,30 @@ const { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingReques
 const { handleChat } = require('./controllers/botController');
 
 const app = express();
+
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } }); // Configuración WebSockets para el Chat
+const io = new Server(server, {
+    cors: { origin: '*' }
+});
+
+io.on('connection', (socket) => {
+    console.log('Usuario conectado al chat');
+    
+    // Unirse a una sala privada
+    socket.on('join_chat', (room) => {
+        socket.join(room);
+    });
+
+    // Recibir y retransmitir mensaje
+    socket.on('send_message', (data) => {
+        io.to(data.room).emit('receive_message', data);
+    });
+});
 
 const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
+});
 
 app.use(cors());
 app.use(express.json());
@@ -39,6 +59,7 @@ app.get('/api/users/:id/non-friends', getNonFriends);
 app.post('/api/friends/request', sendFriendRequest);
 app.put('/api/friends/respond', respondFriendRequest);
 app.get('/api/friends/pending/:id', getPendingRequests);
+app.get('/api/friends/:id', getFriends);
 
 // Publicaciones
 app.post('/api/publications', createPublication);

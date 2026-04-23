@@ -12,7 +12,7 @@ const handleChat = async (req, res) => {
         const command = new RecognizeTextCommand({
             botId: process.env.LEX_BOT_ID,
             botAliasId: process.env.LEX_BOT_ALIAS_ID,
-            localeId: 'es-419',
+            localeId: 'es_419',
             sessionId: sessionId || 'sesion-123',
             text: text
         });

@@ -63,4 +63,22 @@ const getPendingRequests = async (req, res) => {
     }
 };
 
-module.exports = { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests };
+// En backend/src/controllers/friendController.js
+const getFriends = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const query = `
+            SELECT u.id, u.nombre_completo, u.foto_perfil_url
+            FROM usuarios u
+            JOIN amistades a ON (u.id = a.id_usuario1 OR u.id = a.id_usuario2)
+            WHERE (a.id_usuario1 = $1 OR a.id_usuario2 = $1)
+            AND u.id != $1 AND a.estado = 'aceptada'
+        `;
+        const { rows } = await db.query(query, [userId]);
+        res.status(200).json(rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener amigos' });
+    }
+};
+
+module.exports = { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends };

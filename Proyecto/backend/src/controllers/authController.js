@@ -1,4 +1,5 @@
-const { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand } = require("@aws-sdk/client-cognito-identity-provider");
+// Agrega el AdminConfirmSignUpCommand a la importación
+const { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand, AdminConfirmSignUpCommand } = require("@aws-sdk/client-cognito-identity-provider");
 const db = require('../config/db');
 
 const cognito = new CognitoIdentityProviderClient({ region: "us-east-1" });
@@ -14,6 +15,13 @@ const registerUser = async (req, res) => {
             UserAttributes: [{ Name: "email", Value: correo }]
         });
         await cognito.send(signUpCommand);
+
+        // Auto-confirmar al usuario para que no pida verificación de correo
+        const confirmCommand = new AdminConfirmSignUpCommand({
+            UserPoolId: process.env.COGNITO_POOL_ID,
+            Username: correo
+        });
+        await cognito.send(confirmCommand);
 
         // 2. Guardar metadata en PostgreSQL
         const query = 'INSERT INTO usuarios (correo, contrasena, nombre_completo, dpi, foto_perfil_url) VALUES ($1, $2, $3, $4, $5) RETURNING *';
