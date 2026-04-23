@@ -51,15 +51,16 @@ const registerUser = async (req, res) => {
 };
 
 // ==========================================
-// 2. LOGIN TRADICIONAL (CORREGIDO)
+// 2. LOGIN TRADICIONAL (ADMIN AUTH FLOW)
 // ==========================================
 const loginUser = async (req, res) => {
     const { correo, contrasena } = req.body;
     try {
-        // 1. AWS valida que la contraseña sea correcta (Flujo Público)
-        const authCommand = new InitiateAuthCommand({
-            AuthFlow: "USER_PASSWORD_AUTH",
+        // Como el backend es un servidor seguro (IAM autorizado), usamos AdminAuth
+        const authCommand = new AdminInitiateAuthCommand({
+            AuthFlow: "ADMIN_NO_SRP_AUTH",
             ClientId: process.env.COGNITO_CLIENT_ID,
+            UserPoolId: process.env.COGNITO_POOL_ID,
             AuthParameters: { 
                 USERNAME: correo, 
                 PASSWORD: contrasena 
@@ -77,9 +78,8 @@ const loginUser = async (req, res) => {
             user: rows[0] 
         });
     } catch (error) {
-        // Imprime el error exacto en la terminal por si falla
         console.error("Login Error Cognito DETALLE:", error.name, error.message);
-        res.status(401).json({ error: 'Credenciales inválidas o error de AWS' });
+        res.status(401).json({ error: 'Credenciales inválidas: ' + error.message });
     }
 };
 
