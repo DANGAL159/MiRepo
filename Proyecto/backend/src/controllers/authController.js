@@ -1,9 +1,4 @@
-//const { CognitoIdentityProviderClient, SignUpCommand, 
-//    AdminInitiateAuthCommand, AdminConfirmSignUpCommand } = require("@aws-sdk/client-cognito-identity-provider");
-
-// Asegúrate de tener InitiateAuthCommand en tu importación inicial
-const { CognitoIdentityProviderClient, SignUpCommand, InitiateAuthCommand, AdminConfirmSignUpCommand } = require("@aws-sdk/client-cognito-identity-provider");
-
+const { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand, AdminConfirmSignUpCommand, AdminUpdateUserAttributesCommand } = require("@aws-sdk/client-cognito-identity-provider");
 const { RekognitionClient, CompareFacesCommand } = require("@aws-sdk/client-rekognition");
 const jwt = require("jsonwebtoken"); 
 const db = require('../config/db');
@@ -38,6 +33,16 @@ const registerUser = async (req, res) => {
             Username: correo
         });
         await cognito.send(confirmCommand);
+
+        // 3.5 NUEVO: Forzamos a AWS a marcar el correo como "Verificado"
+        const verifyEmailCommand = new AdminUpdateUserAttributesCommand({
+            UserPoolId: process.env.COGNITO_POOL_ID,
+            Username: correo,
+            UserAttributes: [
+                { Name: "email_verified", Value: "true" }
+            ]
+        });
+        await cognito.send(verifyEmailCommand);
 
         // 4. Guardamos en BD. Enviamos un texto genérico para satisfacer el NOT NULL de tu tabla.
         const query = 'INSERT INTO usuarios (correo, contrasena, nombre_completo, dpi, foto_perfil_url, cognito_sub) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, correo, nombre_completo, foto_perfil_url';
