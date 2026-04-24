@@ -3,7 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { api, SERVER_ROOT } from '../api';
 
-const socket = io(SERVER_ROOT);
+// Le decimos explícitamente que intente usar WebSockets directos primero
+const socket = io(SERVER_ROOT, {
+    transports: ['websocket', 'polling']
+});
 
 export default function Chat({ user }) {
     const [amigos, setAmigos] = useState([]);
@@ -18,14 +21,23 @@ export default function Chat({ user }) {
     useEffect(() => {
         cargarAmigos();
 
-        // Listener para mensajes normales
+        // 1. LISTENER DE RECONEXIÓN (LA CURA PARA LA AMNESIA)
+        const handleConnect = () => {
+            console.log("WebSocket (re)conectado al servidor.");
+            if (amigoActivo) {
+                const room = `sala_${[user.id, amigoActivo.id].sort().join('_')}`;
+                socket.emit('join_chat', room);
+            }
+        };
+        socket.on('connect', handleConnect);
+
+        // 2. Listener para mensajes normales
         socket.on('receive_message', (data) => {
             setChatLog((prev) => [...prev, data]);
         });
 
-        // Listener para el indicador de escritura
+        // 3. Listener para el indicador de escritura
         socket.on('user_typing', (data) => {
-            // Solo actualizamos si el evento corresponde a la sala activa
             if (amigoActivo) {
                 const room = `sala_${[user.id, amigoActivo.id].sort().join('_')}`;
                 if (data.room === room && data.username !== user.nombre_completo) {
@@ -35,14 +47,14 @@ export default function Chat({ user }) {
         });
 
         return () => {
+            socket.off('connect', handleConnect);
             socket.off('receive_message');
             socket.off('user_typing');
-            // Limpiar timeout al desmontar
             if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current);
             }
         };
-    }, [amigoActivo, user]); // Dependencias para re-evaluar cuando cambia la conversación
+    }, [amigoActivo, user]); // VITAL: amigoActivo debe estar en el arreglo de dependencias
 
     const cargarAmigos = async () => {
         try {
