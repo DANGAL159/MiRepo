@@ -11,7 +11,7 @@ const { updateProfile } = require('./controllers/userController');
 const { registerUser, loginUser, loginFacial } = require('./controllers/authController');
 const { createPublication, getFeed, translateDescription, getAllTags } = require('./controllers/publicationController');
 const { addComment, getComments } = require('./controllers/commentController');
-const { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends } = require('./controllers/friendController');
+const { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends, getChatHistory } = require('./controllers/friendController');
 const { handleChat } = require('./controllers/botController');
 
 const app = express();
@@ -34,9 +34,18 @@ io.on('connection', (socket) => {
         socket.join(room);
     });
 
-    // Recibir y retransmitir mensaje
-    socket.on('send_message', (data) => {
-        io.to(data.room).emit('receive_message', data);
+    // Recibir, GUARDAR y retransmitir mensaje
+    socket.on('send_message', async (data) => {
+        try {
+            // 1. Guardar silenciosamente en PostgreSQL
+            const query = 'INSERT INTO mensajes (sala, id_remitente, nombre_remitente, texto) VALUES ($1, $2, $3, $4)';
+            await db.query(query, [data.room, data.senderId, data.senderName, data.message]);
+
+            // 2. Retransmitir a la sala en tiempo real
+            io.to(data.room).emit('receive_message', data);
+        } catch (error) {
+            console.error("Error guardando mensaje en BD:", error);
+        }
     });
 
     socket.on('disconnect', () => console.log('Usuario desconectado'));
@@ -57,7 +66,7 @@ app.post('/api/friends/request', sendFriendRequest);
 app.put('/api/friends/respond', respondFriendRequest);
 app.get('/api/friends/pending/:id', getPendingRequests);
 app.get('/api/friends/:id', getFriends);
-
+app.get('/api/chat/:room', getChatHistory);
 // Publicaciones y Comentarios
 app.post('/api/publications', createPublication);
 app.get('/api/feed/:id', getFeed);

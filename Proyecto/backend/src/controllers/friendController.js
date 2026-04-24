@@ -42,8 +42,6 @@ const getNonFriends = async (req, res) => {
     }
 };
 
-// backend/src/controllers/friendController.js
-
 const getPendingRequests = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -63,7 +61,6 @@ const getPendingRequests = async (req, res) => {
     }
 };
 
-// En backend/src/controllers/friendController.js
 const getFriends = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -81,4 +78,25 @@ const getFriends = async (req, res) => {
     }
 };
 
-module.exports = { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends };
+const getChatHistory = async (req, res) => {
+    const { room } = req.params;
+    try {
+        // Traemos los últimos 50 mensajes de esa sala en orden cronológico
+        const query = `
+            SELECT nombre_remitente as sender, texto as message, fecha_envio 
+            FROM mensajes 
+            WHERE sala = $1 
+            ORDER BY fecha_envio ASC 
+            LIMIT 50
+        `;
+        const { rows } = await db.query(query, [room]);
+        res.status(200).json(rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener historial' });
+    }
+};
+
+// Y lo agregas a tus rutas en index.js: 
+// app.get('/api/chat/:room', getChatHistory);
+
+module.exports = { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends, getChatHistory };
