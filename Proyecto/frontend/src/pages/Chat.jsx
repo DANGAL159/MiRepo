@@ -1,25 +1,48 @@
 // frontend/src/pages/Chat.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { api, SERVER_ROOT } from '../api';
 
-const socket = io(SERVER_ROOT); 
+const socket = io(SERVER_ROOT);
 
 export default function Chat({ user }) {
     const [amigos, setAmigos] = useState([]);
     const [amigoActivo, setAmigoActivo] = useState(null);
     const [mensaje, setMensaje] = useState('');
     const [chatLog, setChatLog] = useState([]);
+    
+    // Estado y ref para el indicador de escritura
+    const [estaEscribiendo, setEstaEscribiendo] = useState(false);
+    const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
         cargarAmigos();
-        
+
+        // Listener para mensajes normales
         socket.on('receive_message', (data) => {
             setChatLog((prev) => [...prev, data]);
         });
 
-        return () => socket.off('receive_message');
-    }, []);
+        // Listener para el indicador de escritura
+        socket.on('user_typing', (data) => {
+            // Solo actualizamos si el evento corresponde a la sala activa
+            if (amigoActivo) {
+                const room = `sala_${[user.id, amigoActivo.id].sort().join('_')}`;
+                if (data.room === room && data.username !== user.nombre_completo) {
+                    setEstaEscribiendo(data.isTyping);
+                }
+            }
+        });
+
+        return () => {
+            socket.off('receive_message');
+            socket.off('user_typing');
+            // Limpiar timeout al desmontar
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, [amigoActivo, user]); // Dependencias para re-evaluar cuando cambia la conversación
 
     const cargarAmigos = async () => {
         try {
@@ -30,12 +53,47 @@ export default function Chat({ user }) {
         }
     };
 
-    const seleccionarAmigo = (amigo) => {
+    const seleccionarAmigo = async (amigo) => {
+        // Limpiar indicador anterior al cambiar de amigo
+        setEstaEscribiendo(false);
         setAmigoActivo(amigo);
-        setChatLog([]); // Limpiar chat anterior
-        // Crear un ID de sala único y consistente (ej: "sala_2_5")
         const room = `sala_${[user.id, amigo.id].sort().join('_')}`;
+
+        try {
+            const { data } = await api.get(`/chat/${room}`);
+            setChatLog(data);
+        } catch (error) {
+            console.error("No se pudo cargar el historial del chat", error);
+            setChatLog([]);
+        }
+
         socket.emit('join_chat', room);
+    };
+
+    const manejarEscritura = () => {
+        if (!amigoActivo) return;
+        const room = `sala_${[user.id, amigoActivo.id].sort().join('_')}`;
+        
+        // Avisar que estamos escribiendo
+        socket.emit('typing', { 
+            room, 
+            username: user.nombre_completo,
+            isTyping: true 
+        });
+
+        // Limpiar el temporizador anterior
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Si pasan 2 segundos sin presionar tecla, avisar que nos detuvimos
+        typingTimeoutRef.current = setTimeout(() => {
+            socket.emit('typing', { 
+                room, 
+                username: user.nombre_completo,
+                isTyping: false 
+            });
+        }, 2000);
     };
 
     const enviarMensaje = (e) => {
@@ -43,15 +101,32 @@ export default function Chat({ user }) {
         if (mensaje.trim() === '' || !amigoActivo) return;
 
         const room = `sala_${[user.id, amigoActivo.id].sort().join('_')}`;
-        const data = { room, message: mensaje, sender: user.nombre_completo };
-        
+
+        const data = {
+            room: room,
+            message: mensaje,
+            senderId: user.id,
+            senderName: user.nombre_completo,
+            sender: user.nombre_completo
+        };
+
         socket.emit('send_message', data);
         setMensaje('');
+        
+        // Notificar que dejamos de escribir al enviar
+        socket.emit('typing', { 
+            room, 
+            username: user.nombre_completo,
+            isTyping: false 
+        });
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
     };
 
     return (
         <div className="panel" style={{ display: 'flex', height: '500px', maxWidth: '800px', margin: '2rem auto' }}>
-            
+
             {/* Lista de Amigos (Izquierda) */}
             <div style={{ width: '30%', borderRight: '1px solid var(--border-color)', overflowY: 'auto' }}>
                 <h3 style={{ padding: '1rem', margin: 0, borderBottom: '1px solid var(--border-color)' }}>Contactos</h3>
@@ -59,12 +134,12 @@ export default function Chat({ user }) {
                     <p style={{ padding: '1rem', color: 'var(--text-muted)' }}>No tienes amigos aún.</p>
                 ) : (
                     amigos.map(a => (
-                        <div 
-                            key={a.id} 
+                        <div
+                            key={a.id}
                             onClick={() => seleccionarAmigo(a)}
-                            style={{ 
-                                padding: '1rem', 
-                                cursor: 'pointer', 
+                            style={{
+                                padding: '1rem',
+                                cursor: 'pointer',
                                 borderBottom: '1px solid var(--border-color)',
                                 background: amigoActivo?.id === a.id ? 'var(--border-color)' : 'transparent'
                             }}
@@ -81,12 +156,23 @@ export default function Chat({ user }) {
                     <>
                         <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-base)' }}>
                             <strong style={{ color: 'var(--neon-blue)' }}>Chat con {amigoActivo.nombre_completo}</strong>
+                            {/* Indicador de escritura */}
+                            {estaEscribiendo && (
+                                <span style={{ 
+                                    fontSize: '0.8rem', 
+                                    color: 'var(--neon-blue)', 
+                                    marginLeft: '0.5rem',
+                                    fontStyle: 'italic'
+                                }}>
+                                    Escribiendo...
+                                </span>
+                            )}
                         </div>
-                        
+
                         <div style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             {chatLog.map((msg, idx) => (
                                 <div key={idx} style={{ textAlign: msg.sender === user.nombre_completo ? 'right' : 'left' }}>
-                                    <span style={{ 
+                                    <span style={{
                                         display: 'inline-block', padding: '0.5rem 1rem', borderRadius: '15px',
                                         background: msg.sender === user.nombre_completo ? 'var(--neon-blue)' : 'var(--border-color)',
                                         color: msg.sender === user.nombre_completo ? 'var(--bg-base)' : 'var(--text-main)'
@@ -98,11 +184,14 @@ export default function Chat({ user }) {
                         </div>
 
                         <form onSubmit={enviarMensaje} style={{ display: 'flex', padding: '1rem', borderTop: '1px solid var(--border-color)' }}>
-                            <input 
-                                style={{ flex: 1, marginRight: '1rem' }} 
-                                type="text" 
-                                value={mensaje} 
-                                onChange={(e) => setMensaje(e.target.value)} 
+                            <input
+                                style={{ flex: 1, marginRight: '1rem' }}
+                                type="text"
+                                value={mensaje}
+                                onChange={(e) => { 
+                                    setMensaje(e.target.value); 
+                                    manejarEscritura(); 
+                                }}
                                 placeholder="Cifra tu mensaje..."
                             />
                             <button type="submit">Enviar</button>

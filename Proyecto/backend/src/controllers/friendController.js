@@ -96,7 +96,19 @@ const getChatHistory = async (req, res) => {
     }
 };
 
-// Y lo agregas a tus rutas en index.js: 
-// app.get('/api/chat/:room', getChatHistory);
+const deleteFriendship = async (req, res) => {
+    const { id_usuario, id_amigo } = req.body;
+    try {
+        const query = `
+            DELETE FROM amistades 
+            WHERE (id_usuario_1 = $1 AND id_usuario_2 = $2) 
+               OR (id_usuario_1 = $2 AND id_usuario_2 = $1)
+        `;
+        await db.query(query, [id_usuario, id_amigo]);
+        res.status(200).json({ message: 'Amistad finalizada' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al procesar la solicitud' });
+    }
+};
 
-module.exports = { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends, getChatHistory };
+module.exports = { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends, getChatHistory, deleteFriendship };

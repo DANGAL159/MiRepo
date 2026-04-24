@@ -11,7 +11,7 @@ const { updateProfile } = require('./controllers/userController');
 const { registerUser, loginUser, loginFacial } = require('./controllers/authController');
 const { createPublication, getFeed, translateDescription, getAllTags } = require('./controllers/publicationController');
 const { addComment, getComments } = require('./controllers/commentController');
-const { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends, getChatHistory } = require('./controllers/friendController');
+const { sendFriendRequest, respondFriendRequest, getNonFriends, getPendingRequests, getFriends, getChatHistory, deleteFriendship } = require('./controllers/friendController');
 const { handleChat } = require('./controllers/botController');
 
 const app = express();
@@ -34,6 +34,22 @@ io.on('connection', (socket) => {
         socket.join(room);
     });
 
+    // Notificar que alguien está escribiendo
+    socket.on('typing', (data) => {
+        socket.to(data.room).emit('user_typing', { 
+            username: data.username, 
+            isTyping: true 
+        });
+    });
+
+    // Notificar que se detuvo
+    socket.on('stop_typing', (data) => {
+        socket.to(data.room).emit('user_typing', { 
+            username: data.username, 
+            isTyping: false 
+        });
+    });
+
     // Recibir, GUARDAR y retransmitir mensaje
     socket.on('send_message', async (data) => {
         try {
@@ -48,7 +64,9 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => console.log('Usuario desconectado'));
+    socket.on('disconnect', () => {
+        console.log('Usuario desconectado');
+    });
 });
 
 // --- ENDPOINTS REST ---
@@ -67,6 +85,7 @@ app.put('/api/friends/respond', respondFriendRequest);
 app.get('/api/friends/pending/:id', getPendingRequests);
 app.get('/api/friends/:id', getFriends);
 app.get('/api/chat/:room', getChatHistory);
+app.delete('/api/friends/:id', deleteFriendship);
 // Publicaciones y Comentarios
 app.post('/api/publications', createPublication);
 app.get('/api/feed/:id', getFeed);
