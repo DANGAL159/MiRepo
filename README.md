@@ -102,7 +102,7 @@ Se definieron los siguientes usuarios y roles en **AWS IAM** para garantizar seg
 <br>  
 
 # Diagrama de Arquitectura Utilizada
-`
+
                           ┌───────────────────────────┐
                           │       Usuarios Web        │
                           └─────────────┬─────────────┘
@@ -114,15 +114,16 @@ Se definieron los siguientes usuarios y roles en **AWS IAM** para garantizar seg
                                         │
                 ┌───────────────────────┴───────────────────────┐
                 │                                               │
-                ▼                                               ▼  
-   ┌───────────────────────────┐                 ┌───────────────────────────┐  
-   │         EC2 #1            │                 │         EC2 #2            │  
-   │  (Backend Node.js/Python)       │                 │  (Backend Node.js/Python) │  
-   └─────────────┬─────────────┘                 └─────────────┬─────────────┘  
-                 │                                             │  
-                 └───────────────────────┬───────────────────────┘    
-                                         │  
-                                         ▼  
+                ▼                                               ▼    
+    ┌───────────────────────────┐                 ┌───────────────────────────┐  
+    │         EC2 #1            │                 │         EC2 #2            │  
+    │  (Backend Node.js/Python) │                 │  (Backend Node.js/Python) │ 
+    └───────────┬───────────────┘                 └─────────────┬─────────────┘ 
+                │                                               │   
+                └───────────────────────┬───────────────────────┘  
+                                        │  
+                                        ▼  
+
                           ┌───────────────────────────┐  
                           │           RDS             │  
                           │ (MySQL/PostgreSQL DB)     │  
@@ -141,7 +142,7 @@ Se definieron los siguientes usuarios y roles en **AWS IAM** para garantizar seg
                           │ (Carga de imágenes)       │  
                           └───────────────────────────┘       
 
-   `
+   
 Servicios adicionales:
 ───────────────────────────────────────────────────────────────
 - Cognito: Registro/Login de usuarios (credenciales y facial).
