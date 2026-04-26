@@ -109,7 +109,7 @@ Se definieron los siguientes usuarios y roles en **AWS IAM** para garantizar seg
                                         │
                                         ▼
                           ┌───────────────────────────┐
-                          │   Application Load Balancer│
+                          │ Application Load Balancer │
                           └─────────────┬─────────────┘
                                         │
                 ┌───────────────────────┴───────────────────────┐
