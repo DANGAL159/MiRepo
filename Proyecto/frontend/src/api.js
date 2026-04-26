@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 1. Exportas la raíz para que Socket.io la use
-export const SERVER_ROOT = 'http://semisocial-alb-2051108905.us-east-1.elb.amazonaws.com';
+export const SERVER_ROOT = '' // 'http://semisocial-alb-2051108905.us-east-1.elb.amazonaws.com';
 
 // 2. Le agregas el /api para Axios
 const BACKEND_URL = `${SERVER_ROOT}/api`;
