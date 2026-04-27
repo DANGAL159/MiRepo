@@ -13,7 +13,6 @@ export default function Feed({ user, setUser }) {
     const [filtroActual, setFiltroActual] = useState('Todos');
     const [busquedaEtiqueta, setBusquedaEtiqueta] = useState('');
 
-    // NUEVO: Referencia para el input de archivo oculto
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -48,7 +47,6 @@ export default function Feed({ user, setUser }) {
         }
     };
 
-    // NUEVO: Función para simular el clic
     const handleFileClick = () => {
         fileInputRef.current.click();
     };
@@ -105,9 +103,7 @@ export default function Feed({ user, setUser }) {
             <button 
                 onClick={() => setMostrarFormulario(!mostrarFormulario)}
                 style={{ 
-                    width: '100%', 
-                    marginBottom: '1rem', 
-                    borderStyle: 'dashed',
+                    width: '100%', marginBottom: '1rem', borderStyle: 'dashed',
                     backgroundColor: mostrarFormulario ? 'var(--pip-surface-light)' : 'transparent'
                 }}
             >
@@ -118,119 +114,58 @@ export default function Feed({ user, setUser }) {
                 <form className="panel" onSubmit={handlePublicar} style={{ marginBottom: '2rem', padding: '1rem', animation: 'fadeIn 0.3s ease' }}>
                     <h3 style={{ color: 'var(--neon-blue)', marginTop: 0 }}>Subir a la Red</h3>
                     
-{/* NUEVO: Zona de Carga de Archivo con Previsualización */}
                     <div style={{ border: '1px dashed var(--border-color)', padding: '1rem', textAlign: 'center', marginBottom: '1rem', background: 'rgba(0, 255, 65, 0.02)' }}>
-                        
                         {!archivo ? (
                             <>
                                 <button type="button" onClick={handleFileClick} style={{ width: '100%', marginBottom: '0.5rem' }}>
                                     SELECCIONAR IMAGEN
                                 </button>
-                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                    ESPERANDO SEÑAL VISUAL...
-                                </div>
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>ESPERANDO SEÑAL VISUAL...</div>
                             </>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', animation: 'fadeIn 0.4s ease' }}>
-                                {/* Previsualización de la Imagen */}
-                                <img 
-                                    src={archivo.base64} 
-                                    alt="Preview" 
-                                    style={{ 
-                                        maxWidth: '100%', 
-                                        maxHeight: '250px', 
-                                        border: '2px solid var(--pip-green)',
-                                        boxShadow: '0 0 10px var(--pip-green-glow)',
-                                        objectFit: 'contain'
-                                    }} 
-                                />
-                                <div style={{ color: 'var(--pip-amber)', fontSize: '0.85rem', wordBreak: 'break-all' }}>
-                                    [ MEMORIA CARGADA: {archivo.name} ]
-                                </div>
-                                {/* Botones de Acción */}
+                                <img src={archivo.base64} alt="Preview" style={{ maxWidth: '100%', maxHeight: '250px', border: '2px solid var(--pip-green)', boxShadow: '0 0 10px var(--pip-green-glow)', objectFit: 'contain' }} />
+                                <div style={{ color: 'var(--pip-amber)', fontSize: '0.85rem', wordBreak: 'break-all' }}>[ MEMORIA CARGADA: {archivo.name} ]</div>
                                 <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-                                    <button type="button" onClick={handleFileClick} style={{ flex: 1, fontSize: '0.8rem' }}>
-                                        CAMBIAR
-                                    </button>
-                                    <button type="button" onClick={() => setArchivo(null)} style={{ flex: 1, fontSize: '0.8rem', borderColor: 'var(--pip-red)', color: 'var(--pip-red)' }}>
-                                        DESCARTAR
-                                    </button>
+                                    <button type="button" onClick={handleFileClick} style={{ flex: 1, fontSize: '0.8rem' }}>CAMBIAR</button>
+                                    <button type="button" onClick={() => setArchivo(null)} style={{ flex: 1, fontSize: '0.8rem', borderColor: 'var(--pip-red)', color: 'var(--pip-red)' }}>DESCARTAR</button>
                                 </div>
                             </div>
                         )}
-
-                        <input 
-                            type="file" 
-                            accept="image/*" 
-                            ref={fileInputRef}
-                            onChange={handleFileChange} 
-                            style={{ display: 'none' }} 
-                        />
+                        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
                     </div>
 
-                    <textarea 
-                        placeholder="Ingresa los datos..." 
-                        value={descripcion} 
-                        onChange={(e) => setDescripcion(e.target.value)}
-                        style={{ width: '100%', marginBottom: '1rem', height: '80px' }}
-                    />
-                    <button type="submit" disabled={loading} style={{ width: '100%' }}>
-                        {loading ? 'Procesando IA y Subiendo...' : 'Transmitir'}
-                    </button>
+                    <textarea placeholder="Ingresa los datos..." value={descripcion} onChange={(e) => setDescripcion(e.target.value)} style={{ width: '100%', marginBottom: '1rem', height: '80px' }} />
+                    <button type="submit" disabled={loading} style={{ width: '100%' }}>{loading ? 'Procesando IA y Subiendo...' : 'Transmitir'}</button>
                 </form>
             )}
 
-            {/* SECCIÓN DE FILTROS */}
             <div className="panel" style={{ padding: '1rem', marginBottom: '2rem' }}>
                 <h4 style={{ margin: '0 0 1rem 0', color: 'var(--pip-green-dim)' }}>FILTROS DE REKOGNITION</h4>
-                
-                <input 
-                    type="text" 
-                    placeholder="Buscar etiqueta..." 
-                    value={busquedaEtiqueta}
-                    onChange={(e) => setBusquedaEtiqueta(e.target.value)}
-                    style={{ width: '100%', marginBottom: '1rem' }}
-                />
-
+                <input type="text" placeholder="Buscar etiqueta..." value={busquedaEtiqueta} onChange={(e) => setBusquedaEtiqueta(e.target.value)} style={{ width: '100%', marginBottom: '1rem' }} />
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <button 
-                        onClick={() => setFiltroActual('Todos')}
-                        style={{ 
-                            backgroundColor: filtroActual === 'Todos' ? 'var(--neon-blue)' : 'transparent', 
-                            color: filtroActual === 'Todos' ? 'var(--bg-base)' : 'var(--neon-blue)',
-                            padding: '4px 10px', fontSize: '0.8rem'
-                        }}
-                    >
-                        Todos
-                    </button>
-                    
+                    <button onClick={() => setFiltroActual('Todos')} style={{ backgroundColor: filtroActual === 'Todos' ? 'var(--neon-blue)' : 'transparent', color: filtroActual === 'Todos' ? 'var(--bg-base)' : 'var(--neon-blue)', padding: '4px 10px', fontSize: '0.8rem' }}>Todos</button>
                     {etiquetasFiltradas.map(etiqueta => (
-                        <button 
-                            key={etiqueta}
-                            onClick={() => setFiltroActual(etiqueta)}
-                            style={{ 
-                                backgroundColor: filtroActual === etiqueta ? 'var(--neon-blue)' : 'transparent', 
-                                color: filtroActual === etiqueta ? 'var(--bg-base)' : 'var(--neon-blue)',
-                                padding: '4px 10px', fontSize: '0.8rem'
-                            }}
-                        >
-                            {etiqueta}
-                        </button>
+                        <button key={etiqueta} onClick={() => setFiltroActual(etiqueta)} style={{ backgroundColor: filtroActual === etiqueta ? 'var(--neon-blue)' : 'transparent', color: filtroActual === etiqueta ? 'var(--bg-base)' : 'var(--neon-blue)', padding: '4px 10px', fontSize: '0.8rem' }}>{etiqueta}</button>
                     ))}
                 </div>
             </div>
 
-            {/* FEED DE PUBLICACIONES */}
             <div>
                 {publicacionesFiltradas.length === 0 ? (
                     <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No hay transmisiones para mostrar.</p>
                 ) : (
                     publicacionesFiltradas.map(pub => (
                         <div className="panel" key={pub.id} style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                                <p style={{ margin: 0 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {pub.foto_perfil_url ? (
+                                        <img src={pub.foto_perfil_url} alt="avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--neon-blue)' }} />
+                                    ) : (
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px dashed var(--pip-green-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>SYS</div>
+                                    )}
                                     <strong style={{ color: 'var(--neon-blue)', fontSize: '1.1rem' }}>{pub.nombre_completo}</strong>
-                                </p>
+                                </div>
                                 <small style={{ color: 'var(--text-muted)' }}>{new Date(pub.fecha_publicacion).toLocaleString()}</small>
                             </div>
                             
