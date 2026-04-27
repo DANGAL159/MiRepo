@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Feed from './pages/Feed';
 import Profile from './pages/Profile';
 import Friends from './pages/Friends';
+import Game from './pages/Game';
 import Chat from './pages/Chat';
 import LexBot from './components/LexBot';
 
@@ -30,7 +31,7 @@ function App() {
             <div className="crt-overlay"></div>
 
             <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 1 }}>
-                
+
                 {/* Header Estilo Pip-Boy */}
                 <header style={{ border: '2px solid var(--pip-green)', padding: '15px 20px', marginBottom: '20px', background: 'var(--pip-surface)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
@@ -54,6 +55,7 @@ function App() {
                         <Link to="/friends">RED</Link>
                         <Link to="/chat">COMUNICACIONES</Link>
                         <Link to="/profile">PERFIL</Link>
+                        <Link to="/game">JUEGO</Link>
                     </nav>
                 )}
 
@@ -63,10 +65,14 @@ function App() {
                     <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/" />} />
                     <Route path="/friends" element={user ? <Friends user={user} /> : <Navigate to="/" />} />
                     <Route path="/chat" element={user ? <Chat user={user} /> : <Navigate to="/" />} />
+                    <Route path="/game" element={user ? <Game user={user} /> : <Navigate to="/" />} />
                 </Routes>
+
+                {/* EL BOT AHORA VIVE DENTRO DEL DIV PROTEGIDO */}
+                <LexBot />
+
             </div>
-            
-            {user && <LexBot user={user} />}
+
         </Router>
     );
 }

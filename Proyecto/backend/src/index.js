@@ -29,6 +29,24 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log('Un usuario se conectó al chat');
     
+// --- EVENTOS DEL JUEGO (TIC-TAC-TOE) ---
+    
+    // Unirse a la sala de juego
+    socket.on('join_game', (room) => {
+        socket.join(room);
+    });
+
+    // Recibir y retransmitir el movimiento del tablero
+    socket.on('make_move', (data) => {
+        // data contiene: room, nuevoTablero, siguienteTurno
+        socket.to(data.room).emit('receive_move', data);
+    });
+
+    // Reiniciar el tablero para ambos jugadores
+    socket.on('reset_game', (room) => {
+        socket.to(room).emit('game_reset');
+    });
+
     // Unirse a una sala privada
     socket.on('join_chat', (room) => {
         socket.join(room);
