@@ -1,5 +1,12 @@
 # Manual Técnico
 
+Integrante 1: Williams Bramlley Constanza Oscal - 199919737
+Integrante 2: Angel Guillermo de Jesus Pérez Jimenez - 202100215
+Integrante 3: Daniel Abraham Gálvez Solorzano - 202203361
+Grupo: 9
+Curso: Seminario de sistemas 1
+Semestre: 1S-2026
+
 ## Descripción de la Arquitectura
 
 El sistema "Semi-Social" se construyó sobre **Amazon Web Services (AWS)** utilizando una arquitectura distribuida, de alta disponibilidad y desplegada íntegramente a través de Infraestructura como Código (IaC).
@@ -171,3 +178,7 @@ La plataforma "Semi-Social" ofrece una experiencia de usuario fluida y estructur
 2.  **Backend:** Conexión SSH a las instancias EC2 creadas, clonación del repositorio, configuración de variables de entorno (ARN de Cognito, credenciales de BD) e inicialización del proceso con `pm2`.
 3.  **Frontend:** Compilación estática del proyecto React (`npm run build`) configurando el endpoint raíz para que apunte al dominio de CloudFront.
 4.  **Distribución:** Sincronización del directorio de compilación (`dist`) con el bucket de S3 del frontend mediante AWS CLI (`aws s3 sync`) y purga de caché de CloudFront (`aws cloudfront create-invalidation`) para reflejar los cambios globalmente.
+
+## Servicio AWS Translate
+En el caso de la funcionalidad de AWS Translate no pudo implementarse ya que obliga a utilizar la capa de pay as you go, y la meta del proyecto era utilizar el free tier
+![Amazon Translate](images/translate.png)
